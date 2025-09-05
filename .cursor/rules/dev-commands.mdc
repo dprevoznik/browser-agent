@@ -1,0 +1,35 @@
+---
+description: Quick reference for dev commands and formatting
+---
+# Dev Commands
+
+Requires `uv`, `bun`, and `.env`.
+
+From the project root:
+
+```bash
+just fmt
+```
+
+Formats with Ruff (check --fix, then format).
+
+```bash
+just deploy
+```
+
+Deploys the Kernel app with env from `.env`.
+
+```bash
+just logs
+```
+
+Tails logs for the `browser-agent` app. Additional AI tooling:
+
+```bash
+just claude
+just gemini
+just kernel
+```
+
+See [justfile](mdc:justfile).
+

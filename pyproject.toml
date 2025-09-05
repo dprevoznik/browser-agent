@@ -1,0 +1,16 @@
+[project]
+name = "python-bu"
+version = "0.1.0"
+description = "Kernel sample app for Browser Use"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "browser-use>=0.7.2",
+    "kernel>=0.11.0",
+    "pydantic>=2.10.6",
+    "sorcery>=0.2.2",
+    "zenbase-llml>=0.4.0",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.12.12"]

@@ -1,0 +1,14 @@
+---
+description: Environment variables and .env usage for AI gateway and Kernel
+---
+# Environment & Config
+
+- Required env vars (read in [src/lib/gateway.py](mdc:src/lib/gateway.py)):
+  - `AI_GATEWAY_URL`
+  - `AI_GATEWAY_TOKEN`
+
+- Create `.env` at repo root. `just` is configured to auto-load it via `dotenv-load` and `dotenv-path` in the [justfile](mdc:justfile).
+
+- For deployments, `just deploy` will pass `--env-file .env` to Kernel so the action can read gateway values at runtime.
+
+- Provider-specific runtime creds (sent in request): `provider`, `model`, `api_key` are part of the request body (`BrowserAgentRequest`). The server does not read provider keys from the environment; they come from the client call and are forwarded through the gateway.

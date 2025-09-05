@@ -1,0 +1,17 @@
+---
+globs: src/**/*.py
+description: Python style guidance for this repo
+---
+# Python Style
+
+- Prefer explicit type hints on public APIs and datamodels.
+- Follow Ruff defaults; run `just fmt` before commits.
+- Keep imports ordered and minimal; avoid unused imports.
+- Use `pydantic` models for request/response schemas.
+- Avoid broad `except Exception` unless re-raising or logging with context.
+- Keep functions small with early returns; avoid deep nesting.
+
+Environment/versions:
+
+- Python >= 3.13 per [pyproject.toml](mdc:pyproject.toml).
+- Lint/format via Ruff in the [justfile](mdc:justfile).

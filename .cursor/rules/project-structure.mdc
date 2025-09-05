@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+# Project Structure and Entrypoints
+
+The main entrypoint is [src/app.py](mdc:src/app.py) which defines the Kernel `App` and the `browser-agent` action.
+
+Key modules:
+
+- [src/lib/browser/models.py](mdc:src/lib/browser/models.py): Pydantic `BrowserAgentRequest`, LLM provider mapping, and task assembly via `llml`.
+- [src/lib/browser/session.py](mdc:src/lib/browser/session.py): `CustomBrowserSession` overriding viewport setup for CDP-driven sessions.
+- [src/lib/gateway.py](mdc:src/lib/gateway.py): Reads `AI_GATEWAY_URL` and `AI_GATEWAY_TOKEN` from the environment.
+
+Runtime flow:
+
+1. Action `browser-agent` parses request body into `BrowserAgentRequest`.
+2. A browser is created via Kernel and its CDP URL is passed to `CustomBrowserSession`.
+3. `browser_use.Agent` is instantiated with `task` and `llm` from the request model.
+4. `agent.run()` returns a trajectory; we return `duration`, `result` and `downloads` (if any), else `duration` and `errors`.
+
+Useful references: [pyproject.toml](mdc:pyproject.toml), [README.md](mdc:README.md), [justfile](mdc:justfile).
+

@@ -1,0 +1,29 @@
+---
+description: API contract for `browser-agent` action and request model
+globs: src/**/*.py
+---
+# Browser Agent API
+
+- Action: `browser-agent` in [src/app.py](mdc:src/app.py)
+- Request schema: `BrowserAgentRequest` in [src/lib/browser/models.py](mdc:src/lib/browser/models.py)
+
+Request JSON fields:
+
+- `url` (string): Starting URL for the session.
+- `instructions` (string, optional): Extra instructions prepended to task.
+- `input` (string): Primary natural language input.
+- `provider` ("anthropic" | "gemini" | "openai").
+- `model` (string): Provider model id.
+- `api_key` (string): API key used with the AI gateway.
+- `max_steps` (int, default 100): Passed to the agent as step limit.
+
+Behavior:
+
+- `BrowserAgentRequest.llm` selects provider-specific chat client and injects `cf-aig-authorization` header using gateway token.
+- `BrowserAgentRequest.task` composes instructions and input, including CAPTCHA-handling guidance, via `llml`.
+- The action returns `{ duration, result, downloads }` on success, or `{ duration, errors }` if no final result.
+
+Notes:
+
+- Browser session uses CDP via Kernel-provisioned browser; see [src/lib/browser/session.py](mdc:src/lib/browser/session.py).
+

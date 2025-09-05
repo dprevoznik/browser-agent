@@ -3,7 +3,7 @@ name = "python-bu"
 version = "0.1.0"
 description = "Kernel sample app for Browser Use"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "browser-use>=0.7.2",
     "kernel>=0.11.0",

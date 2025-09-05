@@ -1,4 +1,4 @@
 [tools]
 bun = "1.2"
 just = "1.40"
-python = "3.13.7"
+python = "3.11"

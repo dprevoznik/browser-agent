@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch: {}
 
 jobs:
@@ -25,11 +25,11 @@ jobs:
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 'latest'
+          bun-version: "latest"
 
       - uses: extractions/setup-just@v3
         with:
-          just-version: '1.40.0'
+          just-version: "1.40.0"
 
       - name: Python deps cache
         uses: actions/cache@v4
@@ -41,14 +41,12 @@ jobs:
         run: uv sync --frozen
 
       - name: Lint & format (ruff)
-        run: just lint
+        run: uv run ruff check --fix && uv run ruff format
 
       - name: Deploy via Kernel CLI
         run: |
-          just deploy \
+          bunx -p @onkernel/cli kernel deploy src/app.py \
             -e AI_GATEWAY_URL=${{ secrets.AI_GATEWAY_URL }} \
             -e AI_GATEWAY_TOKEN=${{ secrets.AI_GATEWAY_TOKEN }}
         env:
           KERNEL_API_KEY: ${{ secrets.KERNEL_API_KEY }}
-
-

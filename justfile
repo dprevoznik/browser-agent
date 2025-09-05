@@ -16,6 +16,12 @@ gemini *args:
 kernel *args:
   bunx --bun -p @onkernel/cli kernel {{args}}
 
+dev *args:
+  uv run uvicorn local:server --reload --port 8000 {{args}}
+
+deploy:
+  just kernel deploy main.py --env-file .env
+
 logs *args:
   just kernel logs browser-agent --follow {{args}}
 

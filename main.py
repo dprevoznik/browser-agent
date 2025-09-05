@@ -1,41 +1,50 @@
 import logging
 
 from browser_use import Agent
-from kernel import App, AsyncKernel, KernelContext
-from sorcery import dict_of
+from kernel import App, KernelContext
+from zenbase_llml import llml
 
-from lib.browser.models import BrowserAgentRequest
-from lib.browser.session import CustomBrowserSession
-
-kernel = AsyncKernel()
-app = App("browser-agent")
+from lib.ai import AGENT_INSTRUCTIONS, ChatFactory
+from lib.browser import create_browser
+from lib.models import BrowserAgentRequest, BrowserAgentResponse
 
 logger = logging.getLogger(__name__)
+
+app = App("browser-agent")
 
 
 @app.action("perform")
 async def perform(ctx: KernelContext, params: dict):
     request = BrowserAgentRequest.model_validate(params)
-    browser = await kernel.browsers.create(
-        invocation_id=ctx.invocation_id,
-        stealth=True,
-        headless=False,
-        timeout=60,
+
+    llm = ChatFactory[request.provider](
+        api_key=request.api_key,
+        model=request.model,
     )
-    logger.info(f"Created browser {browser.browser_live_view_url}")
+
+    session, browser = await create_browser(ctx, request)
+
+    prompt = {
+        "instructions": "\n\n".join(
+            filter(bool, [request.instructions, AGENT_INSTRUCTIONS])
+        ),
+        "input": request.input,
+        "notes": """
+        Your browser will automatically:
+        1. Download the PDF file upon viewing it. Just wait for it.
+        2. Solve CAPTCHAs or similar tests. Just wait for it.
+        """,
+    }
 
     agent = Agent(
-        task=request.task,
-        llm=request.llm,
-        browser_session=CustomBrowserSession(cdp_url=browser.cdp_ws_url),
+        task=llml(prompt),
+        browser=browser,
+        llm=llm,
+        use_thinking=request.reasoning,
+        flash_mode=request.flash,
     )
 
-    trajectory = await agent.run(max_steps=request.max_steps)
-    duration = trajectory.total_duration_seconds
+    history = await agent.run(max_steps=request.max_steps)
 
-    if result := trajectory.final_result():
-        files = agent.browser_session.downloaded_files
-        return dict_of(duration, result, files)
-
-    errors = trajectory.errors()
-    return dict_of(duration, errors)
+    response = BrowserAgentResponse.build(session, agent, history)
+    return response.model_dump()

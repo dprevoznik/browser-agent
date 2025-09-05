@@ -5,6 +5,7 @@ description = "Kernel sample app for Browser Use"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "anyio>=4.10.0",
     "browser-use>=0.7.2",
     "kernel>=0.11.0",
     "pydantic>=2.10.6",
@@ -13,4 +14,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.12.12"]
+dev = [
+    "fastapi>=0.116.1",
+    "ipdb>=0.13.13",
+    "ipython>=9.5.0",
+    "pytest>=8.4.2",
+    "ruff>=0.12.12",
+]

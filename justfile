@@ -17,7 +17,7 @@ kernel *args:
   bunx -p @onkernel/cli kernel {{args}}
 
 deploy *args:
-  just kernel deploy src/app.py --env-file .env {{args}}
+  just kernel deploy src/app.py {{args}}
 
 logs *args:
   just kernel logs browser-agent --follow {{args}}
@@ -25,3 +25,7 @@ logs *args:
 fmt:
   uv run ruff check --fix && \
   uv run ruff format
+
+lint:
+  uv run ruff check && \
+  uv run ruff format --check

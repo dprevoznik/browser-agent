@@ -48,7 +48,7 @@ async def perform(ctx: KernelContext, params: dict):
 
     trajectory = await agent.run(max_steps=request.max_steps)
 
-    (downloads,) = await asyncio.gather(
+    uploads = await asyncio.gather(
         upload_files(dir=session, files=downloaded_files(agent)),
         upload_json(trajectory.model_dump(), key=f"{session}/trajectory.json"),
     )
@@ -56,6 +56,6 @@ async def perform(ctx: KernelContext, params: dict):
     response = BrowserAgentResponse.from_run(
         trajectory,
         session=session,
-        downloads=downloads,
+        downloads=uploads[0],
     )
     return response.model_dump()

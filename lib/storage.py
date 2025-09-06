@@ -23,10 +23,10 @@ client = boto3.client(
 
 
 @asyncify
-def upload_file(file: Path | str, key: str):
+def upload_file(file: Path | str, key: str) -> str:
     client.upload_file(
         Bucket=BUCKET,
-        File=str(file),
+        Filename=str(file),
         Key=key,
     )
     return client.generate_presigned_url(
@@ -50,10 +50,10 @@ def upload_json(data: t.Any, key: str) -> str:
     )
 
 
-async def upload_files(
-    dir: str,
-    files: list[Path | str],
-) -> dict[str, str]:
-    keys = [f"{dir}/{Path(f).name}" for f in files]
-    urls = await asyncio.gather(*[upload_file(f, k) for f, k in zip(files, keys)])
-    return dict(zip(keys, urls))
+async def upload_files(dir: str, files: list[Path | str]) -> dict[str, str]:
+    filenames = [Path(f).name for f in files]
+    object_keys = [f"{dir}/{n}" for n in filenames]
+    presigned_urls = await asyncio.gather(
+        *[upload_file(f, k) for f, k in zip(files, object_keys)]
+    )
+    return dict(zip(filenames, presigned_urls))

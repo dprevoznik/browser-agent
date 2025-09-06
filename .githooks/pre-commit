@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Run formatter
+if command -v just >/dev/null 2>&1; then
+  echo "[pre-commit] running: just fmt"
+  just fmt
+else
+  echo "[pre-commit] 'just' not found in PATH" >&2
+  exit 1
+fi
+
+# Auto-add any changes made by formatting
+git add -A
+
+exit 0
+
+

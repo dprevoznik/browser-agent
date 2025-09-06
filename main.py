@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from browser_use import Agent
@@ -5,8 +6,9 @@ from kernel import App, KernelContext
 from zenbase_llml import llml
 
 from lib.ai import AGENT_INSTRUCTIONS, ChatFactory
-from lib.browser import create_browser
+from lib.browser import create_browser, downloaded_files
 from lib.models import BrowserAgentRequest, BrowserAgentResponse
+from lib.storage import upload_files, upload_json
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ async def perform(ctx: KernelContext, params: dict):
         "input": request.input,
         "notes": """
         Your browser will automatically:
-        1. Download the PDF file upon viewing it. Just wait for it.
+        1. Download the PDF file upon viewing it. Just wait for it. You do not need to read the PDF.
         2. Solve CAPTCHAs or similar tests. Just wait for it.
         """,
     }
@@ -44,7 +46,16 @@ async def perform(ctx: KernelContext, params: dict):
         flash_mode=request.flash,
     )
 
-    history = await agent.run(max_steps=request.max_steps)
+    trajectory = await agent.run(max_steps=request.max_steps)
 
-    response = BrowserAgentResponse.build(session, agent, history)
+    (downloads,) = await asyncio.gather(
+        upload_files(dir=session, files=downloaded_files(agent)),
+        upload_json(trajectory.model_dump(), key=f"{session}/trajectory.json"),
+    )
+
+    response = BrowserAgentResponse.from_run(
+        trajectory,
+        session=session,
+        downloads=downloads,
+    )
     return response.model_dump()

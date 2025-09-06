@@ -1,7 +1,8 @@
 import logging
+from pathlib import Path
 from os import environ as env
 
-from browser_use import BrowserProfile
+from browser_use import Agent, BrowserProfile
 from kernel import AsyncKernel, KernelContext
 from kernel.types import BrowserCreateParams
 
@@ -12,6 +13,12 @@ VIEWPORT_SIZE = {"width": 1280, "height": 800}
 
 kernel = AsyncKernel(api_key=env["KERNEL_API_KEY"])
 logger = logging.getLogger(__name__)
+
+
+def downloaded_files(agent: Agent) -> list[Path]:
+    if downloads_path := agent.browser_profile.downloads_path:
+        return list(Path(downloads_path).glob("*"))
+    return []
 
 
 async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):

@@ -1,5 +1,6 @@
-from pathlib import Path
-from browser_use import Agent, AgentHistoryList
+import typing as t
+
+from browser_use.agent.views import AgentHistoryList
 from pydantic import BaseModel
 
 from lib.ai import ModelProvider
@@ -24,21 +25,20 @@ class BrowserAgentRequest(BaseModel):
 
 class BrowserAgentResponse(BaseModel):
     session: str
+    success: bool
     duration: float
     result: str
-    files: list[str]
-    errors: list[str]
+    downloads: dict[str, str]
 
     @classmethod
-    def build(cls, session: str, agent: Agent, history: AgentHistoryList):
-        files: list[str] = []
-        if downloads_path := agent.browser_profile.downloads_path:
-            files = [str(path) for path in Path(downloads_path).glob("*")]
-
+    def from_run(
+        cls,
+        run: AgentHistoryList,
+        **kwargs,
+    ) -> t.Self:
         return cls(
-            session=session,
-            duration=history.total_duration_seconds(),
-            result=history.final_result(),
-            files=files,
-            errors=list(filter(bool, history.errors())),
+            success=run.is_successful(),
+            duration=run.total_duration_seconds(),
+            result=run.final_result(),
+            **kwargs,
         )

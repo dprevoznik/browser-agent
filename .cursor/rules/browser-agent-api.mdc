@@ -1,4 +1,55 @@
 ---
+description: browser-agent-api
+---
+### Endpoint
+
+- `POST /apps/browser-agent/actions/perform` (Kernel action: `perform` in [main.py](mdc:main.py))
+
+### Request body (JSON)
+
+```json
+{
+  "input": "Describe the task to perform",
+  "provider": "anthropic|gemini|openai",
+  "model": "<model-name>",
+  "api_key": "<provider-api-key>",
+  "instructions": "optional extra instructions",
+  "stealth": true,
+  "headless": false,
+  "browser_timeout": 60,
+  "max_steps": 100,
+  "reasoning": true,
+  "flash": false
+}
+```
+
+Fields and defaults are defined in [lib/models.py](mdc:lib/models.py) (`BrowserAgentRequest`). Required: `input`, `provider`, `model`, `api_key`.
+
+### Response body (JSON)
+
+```json
+{
+  "session": "<browser-session-id>",
+  "success": true,
+  "duration": 42.1,
+  "result": "Task completion summary",
+  "downloads": { "file.pdf": "https://..." }
+}
+```
+
+Built by [main.py](mdc:main.py) with `BrowserAgentResponse.from_run(...)`.
+
+### LLM provider routing
+
+- Providers mapped in [lib/ai.py](mdc:lib/ai.py) via Cloudflare AI Gateway.
+- Required env: `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN`.
+
+### Browser/session behavior
+
+- Browser created via Kernel in [lib/browser.py](mdc:lib/browser.py) with fixed viewport and `auto_download_pdfs=True`.
+- Downloads detected via [lib/patch.py](mdc:lib/patch.py) watchdog patch and returned as presigned URLs after upload.
+
+---
 description: API contract for `browser-agent` action and request model
 globs: src/**/*.py
 ---

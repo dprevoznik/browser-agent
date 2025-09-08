@@ -1,6 +1,49 @@
 ---
 alwaysApply: true
 ---
+### Project structure and entrypoints
+
+- **Entrypoint**: [main.py](mdc:main.py) defines the Kernel `App("browser-agent")` and the `perform` action that runs the browser agent.
+
+### Key modules
+
+- **LLM gateway and providers**: [lib/ai.py](mdc:lib/ai.py)
+  - Maps `provider` → chat client (`anthropic`, `gemini`, `openai`) via Cloudflare AI Gateway (`AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN`).
+
+- **Request/response models**: [lib/models.py](mdc:lib/models.py)
+  - `BrowserAgentRequest` (task, provider/model/api_key, browser flags, reasoning) and `BrowserAgentResponse` (session, success, duration, result, downloads).
+
+- **Browser lifecycle**: [lib/browser.py](mdc:lib/browser.py)
+  - `create_browser` creates a remote Kernel browser from `KERNEL_API_KEY`, returns `(session, browser)` with fixed viewport and auto PDF downloads.
+  - `downloaded_files(agent)` collects files from the profile downloads path.
+
+- **Browser patches**: [lib/patch.py](mdc:lib/patch.py)
+  - `PatchedBrowser` and `PatchedDownloadsWatchdog` ensure download events fire reliably (injects a synthetic `NavigationCompleteEvent`).
+
+- **Storage (Cloudflare R2)**: [lib/storage.py](mdc:lib/storage.py)
+  - Uploads downloaded files and trajectory JSON to R2; returns presigned URLs.
+
+- **Async helpers**: [lib/asyncio.py](mdc:lib/asyncio.py)
+  - `asyncify`/`syncify` wrappers used by storage uploads.
+
+### Runtime flow
+
+1. `POST /apps/browser-agent/actions/perform` is invoked (Kernel).
+2. [main.py](mdc:main.py) validates payload into `BrowserAgentRequest`.
+3. LLM client resolved from [lib/ai.py](mdc:lib/ai.py) using AI Gateway.
+4. Browser created via Kernel in [lib/browser.py](mdc:lib/browser.py), returning `session` and `browser`.
+5. `Agent(...).run(max_steps)` executes the task; downloads auto-captured.
+6. Files and trajectory uploaded via [lib/storage.py](mdc:lib/storage.py); response built from `AgentHistoryList`.
+
+### Useful references
+
+- [pyproject.toml](mdc:pyproject.toml): deps and dev tools
+- [README.md](mdc:README.md): API contract, examples, env
+- [justfile](mdc:justfile): `dev`, `deploy`, `logs`, `fmt`, `lint`
+
+---
+alwaysApply: true
+---
 # Project Structure and Entrypoints
 
 The main entrypoint is [src/app.py](mdc:src/app.py) which defines the Kernel `App` and the `browser-agent` action.

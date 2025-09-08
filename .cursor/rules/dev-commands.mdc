@@ -1,4 +1,31 @@
 ---
+description: dev-commands
+---
+### Development and tooling commands
+
+Defined in [justfile](mdc:justfile):
+
+```bash
+# Run local dev server (uvicorn)
+just dev
+
+# Deploy to Kernel (entrypoint: main.py)
+just deploy
+
+# Tail service logs
+just logs
+
+# Format and lint (ruff)
+just fmt
+just lint
+
+# Kernel CLI passthrough
+just kernel <args>
+```
+
+Prereqs: `uv`, `just`, Node.js with `bun` for CLI tooling. See [README.md](mdc:README.md).
+
+---
 description: Quick reference for dev commands and formatting
 ---
 # Dev Commands

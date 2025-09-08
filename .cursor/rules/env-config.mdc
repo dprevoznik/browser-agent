@@ -1,4 +1,29 @@
 ---
+description: env-config
+---
+### Required environment variables
+
+- **AI Gateway** (used in [lib/ai.py](mdc:lib/ai.py))
+  - `AI_GATEWAY_URL`
+  - `AI_GATEWAY_TOKEN`
+
+- **Kernel platform** (used in [lib/browser.py](mdc:lib/browser.py))
+  - `KERNEL_API_KEY`
+
+- **Cloudflare R2 (S3 API)** for uploads (used in [lib/storage.py](mdc:lib/storage.py))
+  - `R2_S3_BUCKET` (default: `browser-agent`)
+  - `R2_S3_ENDPOINT_URL`
+  - `R2_S3_ACCESS_KEY_ID`
+  - `R2_S3_SECRET_ACCESS_KEY`
+
+### Optional
+
+- `BROWSER_USE_LOGGING_LEVEL` (e.g., `debug`)
+- `ANONYMIZED_TELEMETRY` (`false` to disable)
+
+See example `.env` in [README.md](mdc:README.md). The app loads `.env` via `just` settings.
+
+---
 description: Environment variables and .env usage for AI gateway and Kernel
 ---
 # Environment & Config

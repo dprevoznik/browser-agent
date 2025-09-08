@@ -1,4 +1,19 @@
 ---
+description: python-style
+globs: *.py
+---
+### Python style for this repo
+
+- **Typing**: Prefer explicit function signatures and precise types; avoid `Any`.
+- **Control flow**: Use guard clauses; handle errors meaningfully; avoid deep nesting.
+- **Comments**: Document non-obvious intent succinctly; no inline noise.
+- **Formatting**: Use ruff for lint/format (`just fmt` / `just lint`).
+- **Structure**: Keep modules small and purpose-driven (`lib/ai.py`, `lib/browser.py`, `lib/models.py`, etc.).
+- **I/O**: Centralize env and external I/O (Kernel, R2) in dedicated modules.
+
+Follow repository conventions in [pyproject.toml](mdc:pyproject.toml) and commands in [justfile](mdc:justfile).
+
+---
 globs: src/**/*.py
 description: Python style guidance for this repo
 ---

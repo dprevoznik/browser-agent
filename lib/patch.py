@@ -24,15 +24,20 @@ class PatchedDownloadsWatchdog(DownloadsWatchdog):
     LISTENS_TO = DownloadsWatchdog.LISTENS_TO + [BrowserStateRequestEvent]
 
     async def on_BrowserStateRequestEvent(self, event: BrowserStateRequestEvent):
+        cdp_session = self.browser_session.agent_focus
+        if not cdp_session:
+            return
+
         page_url = await self.browser_session.get_current_page_url()
-        target_id = self.browser_session.agent_focus.target_id
+        if not page_url:
+            return
 
         # Mock NavigationCompleteEvent
-        await self.event_bus.dispatch(
+        self.event_bus.dispatch(
             NavigationCompleteEvent(
-                event_type="NavigationCompleteEvent",
-                target_id=target_id,
-                url=page_url,
                 event_parent_id=event.event_id,
+                event_type="NavigationCompleteEvent",
+                target_id=cdp_session.target_id,
+                url=page_url,
             )
         )

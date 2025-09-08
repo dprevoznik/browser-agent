@@ -28,7 +28,7 @@ This is a browser automation agent built on the Kernel platform that uses browse
 - `browser-use`: Web automation library providing Agent and BrowserSession
 - `kernel`: Platform for running the browser agent service
 - `zenbase-llml`: LLM templating used in task construction
-- Environment: Python 3.13, uses `uv` for dependency management, `just` for task running
+- Environment: Python 3.11, uses `uv` for dependency management, `just` for task running
 
 ### Environment Variables
 Requires `AI_GATEWAY_URL` and `AI_GATEWAY_TOKEN` for LLM provider routing through AI gateway.

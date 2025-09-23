@@ -9,14 +9,14 @@ from botocore.client import Config
 
 from lib.asyncio import asyncify
 
-BUCKET = env.get("R2_S3_BUCKET", "browser-agent")
+BUCKET = env.get("S3_BUCKET", "browser-agent")
 PRESIGNED_URL_EXPIRES_IN = 24 * 60 * 60  # 12 hours
 
 client = boto3.client(
     service_name="s3",
-    endpoint_url=env["R2_S3_ENDPOINT_URL"],
-    aws_access_key_id=env["R2_S3_ACCESS_KEY_ID"],
-    aws_secret_access_key=env["R2_S3_SECRET_ACCESS_KEY"],
+    endpoint_url=env["S3_ENDPOINT_URL"],
+    aws_access_key_id=env["S3_ACCESS_KEY_ID"],
+    aws_secret_access_key=env["S3_SECRET_ACCESS_KEY"],
     region_name="auto",
     config=Config(signature_version="s3v4"),
 )

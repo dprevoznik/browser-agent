@@ -17,28 +17,54 @@ The browser-agent microservice provides AI-powered browser automation capabiliti
 - **Trajectory tracking**: Records and stores complete execution history for analysis
 - **Cloudflare AI Gateway integration**: Unified LLM provider routing w/ caching
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.11+
-- `uv` package manager
-- `just` task runner
-- Node.js with `bun` (for deployment tools)
+- [mise](https://mise.jdx.dev/) - Development environment manager
+- Python 3.11+ (managed via mise)
+- Node.js with `bun` (for deployment tools, managed via mise)
 
-### Installation
+### Quick Setup
+
+The easiest way to get started is to use the automated setup command:
 
 ```bash
-# Install dependencies
-uv install
+# Install mise if you haven't already
+curl https://mise.run | sh
 
-# Install development dependencies
-uv install --group dev
+# Clone the repository
+git clone <repository-url>
+cd browser-agent
+
+# Automated setup - installs everything you need
+just claude
 ```
 
-### Environment Setup
+The `just claude` command will:
+- Install Python, Node.js, and other tools via mise
+- Set up the Python virtual environment with uv
+- Install all dependencies
+- Create a `.env` template file
 
-Create a `.env` file with the required environment variables:
+### Manual Setup
+
+If you prefer to set up manually:
+
+```bash
+# Install development tools
+mise install
+
+# Install Python dependencies
+uv install --group dev
+
+# Copy environment template
+cp .env.example .env
+```
+
+### Environment Configuration
+
+Edit your `.env` file with the required values:
 
 ```bash
 # AI Gateway Configuration (required)
@@ -48,33 +74,23 @@ AI_GATEWAY_TOKEN="your-gateway-token"
 # Kernel Platform (required)
 KERNEL_API_KEY="sk_xxxxx"
 
-# Cloudflare R2 Storage for file uploads (required)
-R2_S3_BUCKET="browser-agent"
-R2_S3_ACCESS_KEY_ID="your-access-key"
-R2_S3_ENDPOINT_URL="https://{account_id}.r2.cloudflarestorage.com"
-R2_S3_SECRET_ACCESS_KEY="your-secret-key"
-
-# Optional
-BROWSER_USE_LOGGING_LEVEL="debug"
-ANONYMIZED_TELEMETRY="false"
+# Cloudflare R2 Storage (required)
+S3_BUCKET="browser-agent"
+S3_ACCESS_KEY_ID="your-access-key"
+S3_ENDPOINT_URL="https://{account_id}.r2.cloudflarestorage.com"
+S3_SECRET_ACCESS_KEY="your-secret-key"
 ```
 
-### Local Development
+### Verify Setup
+
+Test that everything is working:
 
 ```bash
-# Run local development server
+# Start the development server
 just dev
 
-# Format and lint code
-just fmt
-```
-
-### Production
-
-```bash
-just deploy
-
-just logs
+# In another terminal, check the service is running
+curl http://localhost:8080/health
 ```
 
 ## API Reference
@@ -179,21 +195,39 @@ just logs
 }
 ```
 
-## Deployment
+## Available Commands
+
+This project uses [just](https://just.systems) as a task runner. All commands are defined in the `justfile`.
 
 ### Development Commands
 
 ```bash
-just fmt          # Format and lint code with ruff
-just dev          # Run local development server
-just logs         # View browser-agent logs
+just dev          # Run local development server on port 8000
+just fmt          # Format and lint code with ruff (auto-fix issues)
+just lint         # Check code formatting and linting (no auto-fix)
 ```
 
-### Production Deployment
+### Deployment Commands
 
 ```bash
-just deploy       # Deploy to Kernel platform
+just deploy       # Deploy main.py to Kernel platform
+just logs         # View browser-agent logs with follow mode
 ```
+
+### AI Tool Integration
+
+```bash
+just claude       # Run Claude Code CLI (setup and development assistant)
+just gemini       # Run Google Gemini CLI
+```
+
+### Kernel Platform Commands
+
+```bash
+just kernel <cmd> # Run any Kernel CLI command (e.g., 'just kernel status')
+```
+
+## Deployment
 
 The deployment process:
 1. Runs formatting and linting checks

@@ -15,7 +15,7 @@ The browser-agent microservice provides AI-powered browser automation capabiliti
 - **CAPTCHA solving**: Built-in capability to handle CAPTCHAs and similar challenges
 - **Session management**: Creates isolated browser sessions with proper cleanup
 - **Trajectory tracking**: Records and stores complete execution history for analysis
-- **Cloudflare AI Gateway integration**: Unified LLM provider routing
+- **Cloudflare AI Gateway integration**: Unified LLM provider routing w/ caching
 
 ## Quick Start
 

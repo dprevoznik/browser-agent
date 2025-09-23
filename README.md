@@ -19,50 +19,20 @@ The browser-agent microservice provides AI-powered browser automation capabiliti
 
 ## Getting Started
 
-### Prerequisites
-
 - [mise](https://mise.jdx.dev/) - Development environment manager
 - Python 3.11+ (managed via mise)
 - Node.js with `bun` (for deployment tools, managed via mise)
-
-### Quick Setup
-
-The easiest way to get started is to use the automated setup command:
-
-```bash
-# Install mise if you haven't already
-curl https://mise.run | sh
-
-# Clone the repository
-git clone <repository-url>
-cd browser-agent
-
-# Automated setup - installs everything you need
-just claude
-```
-
-The `just claude` command will:
-- Install Python, Node.js, and other tools via mise
-- Set up the Python virtual environment with uv
-- Install all dependencies
-- Create a `.env` template file
-
-### Manual Setup
-
-If you prefer to set up manually:
 
 ```bash
 # Install development tools
 mise install
 
 # Install Python dependencies
-uv install --group dev
+uv sync
 
 # Copy environment template
 cp .env.example .env
 ```
-
-### Environment Configuration
 
 Edit your `.env` file with the required values:
 
@@ -80,8 +50,6 @@ S3_ACCESS_KEY_ID="your-access-key"
 S3_ENDPOINT_URL="https://{account_id}.r2.cloudflarestorage.com"
 S3_SECRET_ACCESS_KEY="your-secret-key"
 ```
-
-### Verify Setup
 
 Test that everything is working:
 

@@ -31,11 +31,6 @@ async def perform(ctx: KernelContext, params: dict):
             filter(bool, [request.instructions, AGENT_INSTRUCTIONS])
         ),
         "input": request.input,
-        "notes": """
-        Your browser will automatically:
-        1. Download the PDF file upon viewing it. Just wait for it. You do not need to read the PDF.
-        2. Solve CAPTCHAs or similar tests. Just wait for it.
-        """,
     }
 
     agent = Agent(

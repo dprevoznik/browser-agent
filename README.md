@@ -15,7 +15,7 @@ The browser-agent microservice provides AI-powered browser automation capabiliti
 - **CAPTCHA solving**: Built-in capability to handle CAPTCHAs and similar challenges
 - **Session management**: Creates isolated browser sessions with proper cleanup
 - **Trajectory tracking**: Records and stores complete execution history for analysis
-- **Cloudflare AI Gateway integration**: Unified LLM provider routing w/ caching
+- **AI Gateway integration**: Compatible with any AI gateway (Cloudflare, Azure, etc.) or direct provider APIs
 
 ## Getting Started
 
@@ -37,14 +37,21 @@ cp .env.example .env
 Edit your `.env` file with the required values:
 
 ```bash
-# AI Gateway Configuration (required)
+# LLM Provider Configuration
+# Option 1: Direct API access (no gateway)
+# Nothing required here!
+
+# Option 2: With AI Gateway (Cloudflare example)
 AI_GATEWAY_URL="https://gateway.ai.cloudflare.com/v1/{account_id}/ai-gateway"
-AI_GATEWAY_TOKEN="your-gateway-token"
+AI_GATEWAY_HEADERS='{"cf-aig-authorization": "Bearer your-gateway-token"}'
+ANTHROPIC_CONFIG='{"base_url": "${AI_GATEWAY_URL}/anthropic", "default_headers": ${AI_GATEWAY_HEADERS}}'
+OPENAI_CONFIG='{"base_url": "${AI_GATEWAY_URL}/openai", "default_headers": ${AI_GATEWAY_HEADERS}}'
+GEMINI_CONFIG='{"http_options": {"base_url": "${AI_GATEWAY_URL}/google-ai-studio", "headers": ${AI_GATEWAY_HEADERS}}}'
 
 # Kernel Platform (required)
 KERNEL_API_KEY="sk_xxxxx"
 
-# Cloudflare R2 Storage (required)
+# S3-compatible storage for file downloads (required)
 S3_BUCKET="browser-agent"
 S3_ACCESS_KEY_ID="your-access-key"
 S3_ENDPOINT_URL="https://{account_id}.r2.cloudflarestorage.com"
@@ -222,7 +229,7 @@ The deployment process:
 ### Architecture Flow
 
 1. Request received via Kernel platform
-2. LLM client created based on provider/model through AI Gateway
+2. LLM client created based on provider/model (direct API or through AI Gateway)
 3. Remote browser session established with custom configuration
 4. browser-use Agent instantiated with reasoning capabilities
 5. Task executed with intelligent planning and step-by-step execution

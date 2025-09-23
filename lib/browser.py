@@ -2,12 +2,11 @@ import logging
 from pathlib import Path
 from os import environ as env
 
-from browser_use import Agent, BrowserProfile
+from browser_use import Agent, BrowserProfile, Browser
 from kernel import AsyncKernel, KernelContext
 from kernel.types import BrowserCreateParams
 
 from lib.models import BrowserAgentRequest
-from lib.patch import PatchedBrowser
 
 VIEWPORT_SIZE = {"width": 1280, "height": 800}
 
@@ -39,7 +38,7 @@ async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):
     if not headless:
         logger.info(f"Browser live view: {remote_browser.browser_live_view_url}")
 
-    browser = PatchedBrowser(
+    browser = Browser(
         id=invocation_id,
         browser_profile=BrowserProfile(
             is_local=False,

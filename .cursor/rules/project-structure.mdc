@@ -17,9 +17,6 @@ alwaysApply: true
   - `create_browser` creates a remote Kernel browser from `KERNEL_API_KEY`, returns `(session, browser)` with fixed viewport and auto PDF downloads.
   - `downloaded_files(agent)` collects files from the profile downloads path.
 
-- **Browser patches**: [lib/patch.py](mdc:lib/patch.py)
-  - `PatchedBrowser` and `PatchedDownloadsWatchdog` ensure download events fire reliably (injects a synthetic `NavigationCompleteEvent`).
-
 - **Storage (Cloudflare R2)**: [lib/storage.py](mdc:lib/storage.py)
   - Uploads downloaded files and trajectory JSON to R2; returns presigned URLs.
 

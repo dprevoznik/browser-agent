@@ -4,13 +4,13 @@ An AI-powered browser automation microservice built on the Kernel platform that 
 
 ## Overview
 
-The browser-agent microservice provides AI-powered browser automation capabilities, allowing you to control browsers using natural language instructions. It supports multiple LLM providers (Anthropic Claude, OpenAI GPT, Google Gemini) and can handle complex multi-step web tasks including data extraction, form filling, file downloads, and CAPTCHA solving.
+The browser-agent microservice provides AI-powered browser automation capabilities, allowing you to control browsers using natural language instructions. It supports multiple LLM providers (Anthropic Claude, OpenAI GPT, Google Gemini, Azure OpenAI, Groq, and Ollama) and can handle complex multi-step web tasks including data extraction, form filling, file downloads, and CAPTCHA solving.
 
 ## Features
 
 - **AI-powered browser automation**: Uses LLMs to intelligently control browsers and perform complex web tasks
 - **Multi-step task execution**: Decomposes complex requests into sub-tasks and executes them sequentially
-- **Multi-provider LLM support**: Works with Anthropic Claude, OpenAI GPT, and Google Gemini
+- **Multi-provider LLM support**: Works with Anthropic Claude, OpenAI GPT, Google Gemini, Azure OpenAI, Groq, and Ollama
 - **File handling**: Automatically downloads PDFs and other files, uploads them to cloud storage
 - **CAPTCHA solving**: Built-in capability to handle CAPTCHAs and similar challenges
 - **Session management**: Creates isolated browser sessions with proper cleanup
@@ -38,8 +38,8 @@ Edit your `.env` file with the required values:
 
 ```bash
 # LLM Provider Configuration
-# Option 1: Direct API access (no gateway)
-# Nothing required here!
+# Option 1: Direct API access (no gateway) - providers use default endpoints
+# Nothing required here - providers will use their default API endpoints!
 
 # Option 2: With AI Gateway (Cloudflare example)
 AI_GATEWAY_URL="https://gateway.ai.cloudflare.com/v1/{account_id}/ai-gateway"
@@ -47,6 +47,16 @@ AI_GATEWAY_HEADERS='{"cf-aig-authorization": "Bearer your-gateway-token"}'
 ANTHROPIC_CONFIG='{"base_url": "${AI_GATEWAY_URL}/anthropic", "default_headers": ${AI_GATEWAY_HEADERS}}'
 OPENAI_CONFIG='{"base_url": "${AI_GATEWAY_URL}/openai", "default_headers": ${AI_GATEWAY_HEADERS}}'
 GEMINI_CONFIG='{"http_options": {"base_url": "${AI_GATEWAY_URL}/google-ai-studio", "headers": ${AI_GATEWAY_HEADERS}}}'
+
+# Option 3: Provider-specific configurations
+# Azure OpenAI
+AZURE_OPENAI_CONFIG='{"azure_endpoint": "https://your-resource.openai.azure.com/", "api_version": "2024-02-01"}'
+
+# Groq
+GROQ_CONFIG='{"base_url": "https://api.groq.com/openai/v1"}'
+
+# Ollama (local)
+OLLAMA_CONFIG='{"base_url": "http://localhost:11434/v1"}'
 
 # Kernel Platform (required)
 KERNEL_API_KEY="sk_xxxxx"
@@ -56,6 +66,16 @@ S3_BUCKET="browser-agent"
 S3_ACCESS_KEY_ID="your-access-key"
 S3_ENDPOINT_URL="https://{account_id}.r2.cloudflarestorage.com"
 S3_SECRET_ACCESS_KEY="your-secret-key"
+
+# Optional Configuration
+# Browser viewport size (default: 1440x900)
+# VIEWPORT_SIZE='{"width": 1440, "height": 900}'
+
+# Set to "debug" for verbose browser-use logging
+# BROWSER_USE_LOGGING_LEVEL="info"
+
+# Set to "false" to disable anonymous telemetry
+# ANONYMIZED_TELEMETRY="false"
 ```
 
 Test that everything is working:
@@ -79,8 +99,8 @@ curl http://localhost:8080/health
 ```json
 {
   "input": "Task description for the browser agent",
-  "provider": "anthropic|gemini|openai",
-  "model": "claude-4-sonnet|gpt-4.1|gemini-2.5-pro",
+  "provider": "anthropic|gemini|openai|azure_openai|groq|ollama",
+  "model": "claude-3-5-sonnet-20241022|gpt-4o|gemini-2.0-flash-exp|llama-3.3-70b-versatile",
   "api_key": "your-llm-api-key",
   "instructions": "Optional additional instructions",
   "stealth": true,
@@ -95,7 +115,7 @@ curl http://localhost:8080/health
 ### Request Parameters
 
 - `input` (required): Natural language description of the task to perform
-- `provider` (required): LLM provider (`"anthropic"`, `"gemini"`, or `"openai"`)
+- `provider` (required): LLM provider (`"anthropic"`, `"gemini"`, `"openai"`, `"azure_openai"`, `"groq"`, or `"ollama"`)
 - `model` (required): Specific model to use (e.g., `"claude-3-sonnet-20240229"`)
 - `api_key` (required): API key for the LLM provider
 - `instructions` (optional): Additional context or constraints for the task
@@ -164,9 +184,45 @@ curl http://localhost:8080/health
 {
   "input": "Fill out the contact form on example.com with name 'John Doe', email 'john@example.com', and message 'Hello world'",
   "provider": "gemini",
-  "model": "gemini-2.5-pro",
+  "model": "gemini-2.0-flash-exp",
   "api_key": "your-gemini-key",
   "stealth": true
+}
+```
+
+### Using Azure OpenAI
+
+```json
+{
+  "input": "Navigate to news.ycombinator.com and summarize the top 5 stories",
+  "provider": "azure_openai",
+  "model": "gpt-4o",
+  "api_key": "your-azure-openai-key",
+  "headless": true
+}
+```
+
+### Using Groq
+
+```json
+{
+  "input": "Search for 'climate change' on Wikipedia and extract the first paragraph",
+  "provider": "groq",
+  "model": "llama-3.3-70b-versatile",
+  "api_key": "your-groq-key",
+  "reasoning": true
+}
+```
+
+### Using Ollama (Local)
+
+```json
+{
+  "input": "Go to example.com and take a screenshot of the homepage",
+  "provider": "ollama",
+  "model": "llama3.2",
+  "api_key": "not-required-for-ollama",
+  "headless": false
 }
 ```
 
@@ -215,7 +271,7 @@ The deployment process:
 
 - **`src/app.py`**: Main Kernel app with `browser-agent` action. Creates browsers via kernel, instantiates Agent with custom session, runs tasks and returns trajectory results.
 - **`src/lib/browser/session.py`**: CustomBrowserSession that extends browser-use's BrowserSession, fixing viewport handling for CDP connections and setting fixed 1024x786 resolution.
-- **`src/lib/browser/models.py`**: BrowserAgentRequest model handling LLM provider abstraction (anthropic, gemini, openai) with AI gateway integration.
+- **`src/lib/browser/models.py`**: BrowserAgentRequest model handling LLM provider abstraction (anthropic, gemini, openai, azure_openai, groq, ollama) with AI gateway integration.
 - **`src/lib/gateway.py`**: AI gateway configuration from environment variables.
 
 ### Key Dependencies

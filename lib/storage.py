@@ -3,9 +3,10 @@ import typing as t
 from os import environ as env
 from pathlib import Path
 
+from botocore.client import Config
+import anyio
 import boto3
 import orjson
-from botocore.client import Config
 
 from lib.asyncio import asyncify
 
@@ -23,7 +24,7 @@ client = boto3.client(
 
 
 @asyncify
-def upload_file(file: Path | str, key: str) -> str:
+def upload_file(file: anyio.Path | Path | str, key: str) -> str:
     client.upload_file(
         Bucket=BUCKET,
         Filename=str(file),
@@ -50,10 +51,14 @@ def upload_json(data: t.Any, key: str) -> str:
     )
 
 
-async def upload_files(dir: str, files: list[Path | str]) -> dict[str, str]:
-    filenames = [Path(f).name for f in files]
-    object_keys = [f"{dir}/{n}" for n in filenames]
+async def upload_files(
+    dir: str,
+    files: t.AsyncIterator[anyio.Path | Path | str],
+) -> dict[str, str]:
+    files = [Path(f) async for f in files]
+    names = [f.name for f in files]
+    object_keys = [f"{dir}/{n}" for n in names]
     presigned_urls = await asyncio.gather(
         *[upload_file(f, k) for f, k in zip(files, object_keys)]
     )
-    return dict(zip(filenames, presigned_urls))
+    return dict(zip(names, presigned_urls))

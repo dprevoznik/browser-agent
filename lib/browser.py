@@ -1,23 +1,21 @@
 import logging
-from pathlib import Path
-from os import environ as env
+from os import environ as env, getenv
 
-from browser_use import Agent, BrowserProfile, Browser
+from browser_use import BrowserProfile, Browser
 from kernel import AsyncKernel, KernelContext
 from kernel.types import BrowserCreateParams
+import anyio
+import orjson
 
 from lib.models import BrowserAgentRequest
 
-VIEWPORT_SIZE = {"width": 1280, "height": 800}
+VIEWPORT_SIZE = orjson.loads(getenv("VIEWPORT_SIZE", '{"width": 1440, "height": 900}'))
 
 kernel = AsyncKernel(api_key=env["KERNEL_API_KEY"])
 logger = logging.getLogger(__name__)
 
 
-def downloaded_files(agent: Agent) -> list[Path]:
-    if downloads_path := agent.browser_profile.downloads_path:
-        return list(Path(downloads_path).glob("*"))
-    return []
+DOWNLOADS_PATH = anyio.Path(getenv("DOWNLOADS_PATH", "/tmp/downloads"))
 
 
 async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):
@@ -46,7 +44,7 @@ async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):
             headless=headless,
             screen=VIEWPORT_SIZE,
             viewport=VIEWPORT_SIZE,
-            downloads_path="/tmp/downloads",
+            downloads_path=str(DOWNLOADS_PATH),
             auto_download_pdfs=True,
         ),
     )

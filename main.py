@@ -6,7 +6,7 @@ from kernel import App, KernelContext
 from zenbase_llml import llml
 
 from lib.ai import AGENT_INSTRUCTIONS, ChatFactory
-from lib.browser import create_browser, downloaded_files
+from lib.browser import DOWNLOADS_PATH, create_browser
 from lib.models import BrowserAgentRequest, BrowserAgentResponse
 from lib.storage import upload_files, upload_json
 
@@ -44,7 +44,7 @@ async def perform(ctx: KernelContext, params: dict):
     trajectory = await agent.run(max_steps=request.max_steps)
 
     uploads = await asyncio.gather(
-        upload_files(dir=session, files=downloaded_files(agent)),
+        upload_files(dir=session, files=DOWNLOADS_PATH.glob("*")),
         upload_json(trajectory.model_dump(), key=f"{session}/trajectory.json"),
     )
 

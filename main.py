@@ -5,10 +5,7 @@ from browser_use import Agent
 from kernel import App, KernelContext
 from zenbase_llml import llml
 
-from lib.ai import AGENT_INSTRUCTIONS, ChatFactory
-from lib.browser import DOWNLOADS_PATH, create_browser
-from lib.models import BrowserAgentRequest, BrowserAgentResponse
-from lib.storage import upload_files, upload_json
+from lib import storage, ai, browser, models
 
 logger = logging.getLogger(__name__)
 
@@ -17,40 +14,53 @@ app = App("browser-agent")
 
 @app.action("perform")
 async def perform(ctx: KernelContext, params: dict):
-    request = BrowserAgentRequest.model_validate(params)
+    request = models.BrowserAgentRequest.model_validate(params)
 
-    llm = ChatFactory[request.provider](
+    llm = ai.ChatFactory[request.provider](
         api_key=request.api_key,
         model=request.model,
     )
 
-    session, browser = await create_browser(ctx, request)
+    instructions = f"""
+    You are an agent - please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user. Decompose the user's query into all required sub-requests, and confirm that each is completed. Do not stop after completing only part of the request. Only terminate your turn when you are sure that the problem is solved. You must be prepared to answer multiple queries and only finish the call once the user has confirmed they're done.
 
-    prompt = {
-        "instructions": "\n\n".join(
-            filter(bool, [request.instructions, AGENT_INSTRUCTIONS])
-        ),
-        "input": request.input,
-    }
+    You must plan extensively in accordance with the workflow steps before making subsequent function calls, and reflect extensively on the outcomes each function call made, ensuring the user's query, and related sub-requests are completely resolved.
 
+    {request.instructions}
+
+    Remember, you are an agent - please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user. Decompose the user's query into all required sub-requests, and confirm that each is completed. Do not stop after completing only part of the request. Only terminate your turn when you are sure that the problem is solved. You must be prepared to answer multiple queries and only finish the call once the user has confirmed they're done.
+
+    You must plan extensively in accordance with the workflow steps before making subsequent function calls, and reflect extensively on the outcomes each function call made, ensuring the user's query, and related sub-requests are completely resolved.
+
+    Note that your browser will automatically:
+    1. Download the PDF file upon viewing it. Just wait for it. You do not need to read the PDF.
+    2. Solve CAPTCHAs or similar tests. Just wait for it.
+    """
+
+    session_id, browser_session, downloads_path = await browser.create(ctx, request)
     agent = Agent(
-        task=llml(prompt),
-        browser=browser,
+        task=llml({"instructions": instructions, "input": request.input}),
+        browser=browser_session,
         llm=llm,
         use_thinking=request.reasoning,
         flash_mode=request.flash,
     )
-
     trajectory = await agent.run(max_steps=request.max_steps)
 
-    uploads = await asyncio.gather(
-        upload_files(dir=session, files=DOWNLOADS_PATH.glob("*")),
-        upload_json(trajectory.model_dump(), key=f"{session}/trajectory.json"),
-    )
+    if not storage.ENABLED:
+        downloads = {p.name: str(p) async for p in downloads_path.glob("*")}
+    else:
+        (downloads,) = await asyncio.gather(
+            storage.upload_files(dir=session_id, paths=downloads_path.glob("*")),
+            storage.upload_json(
+                trajectory.model_dump(),
+                key=f"{session_id}/trajectory.json",
+            ),
+        )
 
-    response = BrowserAgentResponse.from_run(
+    response = models.BrowserAgentResponse.from_run(
         trajectory,
-        session=session,
-        downloads=uploads[0],
+        session=session_id,
+        downloads=downloads,
     )
     return response.model_dump()

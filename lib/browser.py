@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 DOWNLOADS_PATH = anyio.Path(getenv("DOWNLOADS_PATH", "/tmp/downloads"))
 
 
-async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):
+async def create(ctx: KernelContext, request: BrowserAgentRequest):
     invocation_id = ctx.invocation_id
     headless = request.headless
 
@@ -49,4 +49,4 @@ async def create_browser(ctx: KernelContext, request: BrowserAgentRequest):
         ),
     )
 
-    return session, browser
+    return session, browser, DOWNLOADS_PATH
